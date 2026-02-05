@@ -9,6 +9,7 @@ import Services from "../pages/customer/Services";
 import ServiceDetails from "../pages/customer/ServiceDetails";
 import MyBookings from "../pages/customer/MyBookings";
 import BookAppointment from "../pages/customer/BookAppointment";
+import MyAppointments from "../pages/customer/MyAppointments";
 
 import ProviderDashboard from "../pages/provider/ProviderDashboard";
 
@@ -29,6 +30,7 @@ export default function AppRoutes() {
         <Route path="/services" element={<Services />} />
         <Route path="/service/:id" element={<ServiceDetails />} />
         <Route path="/bookings" element={<MyBookings />} />
+        <Route path="/appointments" element={<MyAppointments />} />
       </Route>
 
       {/* provider */}

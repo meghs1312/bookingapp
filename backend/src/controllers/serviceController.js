@@ -1,4 +1,4 @@
-const Service = require("../models/service"); // ⚠️ Capital S
+const Service = require("../models/Service");
 
 
 // CREATE
