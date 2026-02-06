@@ -11,14 +11,30 @@ const slotSchema = new mongoose.Schema({
     ref: "Service",
     required: true
   },
-  date: Date,
-  startTime: String,
-  endTime: String,
+  date: {
+    type: Date,
+    required: true
+  },
+  startTime: {
+    type: String,
+    required: true
+  },
+  endTime: {
+    type: String,
+    required: true
+  },
 
   isBooked: {
     type: Boolean,
     default: false
   }
 });
+
+
+// ✅ ADD THIS (MOST IMPORTANT)
+slotSchema.index(
+  { provider: 1, date: 1, startTime: 1 },
+  { unique: true }
+);
 
 module.exports = mongoose.model("Slot", slotSchema);
