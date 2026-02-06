@@ -3,20 +3,12 @@ import axios from "../../api/axios";
 import Layout from "../../components/Layout";
 
 export default function ProviderDashboard() {
-  const [activeTab, setActiveTab] = useState("services");
   const [services, setServices] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [slots, setSlots] = useState([]);
-  const [showAddService, setShowAddService] = useState(false);
   const [showAddSlot, setShowAddSlot] = useState(false);
 
   const [message, setMessage] = useState({ type: "", text: "" });
-
-  const [serviceForm, setServiceForm] = useState({
-    name: "",
-    description: "",
-    duration: 30
-  });
 
   const [slotForm, setSlotForm] = useState({
     service: "",
@@ -57,26 +49,22 @@ export default function ProviderDashboard() {
     setSlots(res.data);
   };
 
-  const handleServiceSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post("/services", serviceForm, tokenHeader);
-      setServiceForm({ name: "", description: "", duration: 30 });
-      setShowAddService(false);
-      fetchServices();
-      showMessage("success", "Service created successfully");
-    } catch {
-      showMessage("error", "Failed to create service");
-    }
-  };
-
   const handleSlotSubmit = async (e) => {
     e.preventDefault();
+
     try {
       await axios.post("/slots", slotForm, tokenHeader);
-      setSlotForm({ service: "", date: "", startTime: "", endTime: "" });
+
+      setSlotForm({
+        service: "",
+        date: "",
+        startTime: "",
+        endTime: ""
+      });
+
       setShowAddSlot(false);
       fetchSlots();
+
       showMessage("success", "Slot created successfully");
     } catch (err) {
       showMessage(
@@ -84,11 +72,6 @@ export default function ProviderDashboard() {
         err.response?.data?.message || "Slot already exists for this time"
       );
     }
-  };
-
-  const deleteService = async (id) => {
-    await axios.delete(`/services/${id}`, tokenHeader);
-    fetchServices();
   };
 
   const deleteSlot = async (id) => {
@@ -114,70 +97,83 @@ export default function ProviderDashboard() {
           <div style={bannerStyle}>{message.text}</div>
         )}
 
-        {activeTab === "slots" && (
-          <>
-            <button onClick={() => setShowAddSlot(true)}>Add Slot</button>
+        <button onClick={() => setShowAddSlot(true)}>
+          ➕ Add Slot
+        </button>
 
-            {showAddSlot && (
-              <form onSubmit={handleSlotSubmit}>
-                <select
-                  value={slotForm.service}
-                  onChange={(e) =>
-                    setSlotForm({ ...slotForm, service: e.target.value })
-                  }
-                  required
-                >
-                  <option value="">Select Service</option>
-                  {services.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="date"
-                  required
-                  value={slotForm.date}
-                  onChange={(e) =>
-                    setSlotForm({ ...slotForm, date: e.target.value })
-                  }
-                />
-
-                <input
-                  type="time"
-                  required
-                  value={slotForm.startTime}
-                  onChange={(e) =>
-                    setSlotForm({ ...slotForm, startTime: e.target.value })
-                  }
-                />
-
-                <input
-                  type="time"
-                  required
-                  value={slotForm.endTime}
-                  onChange={(e) =>
-                    setSlotForm({ ...slotForm, endTime: e.target.value })
-                  }
-                />
-
-                <button type="submit">Save Slot</button>
-              </form>
-            )}
-
-            <div style={{ marginTop: "30px" }}>
-              {slots.map((slot) => (
-                <div key={slot._id} style={{ marginBottom: "10px" }}>
-                  {new Date(slot.date).toLocaleDateString()} | {slot.startTime} - {slot.endTime} | {slot.isBooked ? "Booked" : "Available"}
-                  {!slot.isBooked && (
-                    <button onClick={() => deleteSlot(slot._id)}>Delete</button>
-                  )}
-                </div>
+        {showAddSlot && (
+          <form onSubmit={handleSlotSubmit} style={{ marginTop: "20px" }}>
+            <select
+              required
+              value={slotForm.service}
+              onChange={(e) =>
+                setSlotForm({ ...slotForm, service: e.target.value })
+              }
+            >
+              <option value="">Select Service</option>
+              {services.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
               ))}
-            </div>
-          </>
+            </select>
+
+            <input
+              type="date"
+              required
+              value={slotForm.date}
+              onChange={(e) =>
+                setSlotForm({ ...slotForm, date: e.target.value })
+              }
+            />
+
+            <input
+              type="time"
+              required
+              value={slotForm.startTime}
+              onChange={(e) =>
+                setSlotForm({ ...slotForm, startTime: e.target.value })
+              }
+            />
+
+            <input
+              type="time"
+              required
+              value={slotForm.endTime}
+              onChange={(e) =>
+                setSlotForm({ ...slotForm, endTime: e.target.value })
+              }
+            />
+
+            <button type="submit">Save Slot</button>
+          </form>
         )}
+
+        <div style={{ marginTop: "30px" }}>
+          {slots.map((slot) => {
+
+            // ⭐⭐⭐ THIS IS THE IMPORTANT FIX ⭐⭐⭐
+            const service = services.find(
+              s => s._id.toString() === slot.service.toString()
+            );
+
+            return (
+              <div key={slot._id} style={{ marginBottom: "12px" }}>
+                <b>{service?.name || "Unknown Service"}</b> |{" "}
+                {new Date(slot.date).toLocaleDateString()} |{" "}
+                {slot.startTime} - {slot.endTime} |{" "}
+                {slot.isBooked ? "Booked" : "Available"}
+
+                {!slot.isBooked && (
+                  <button onClick={() => deleteSlot(slot._id)}>
+                    Delete
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
       </div>
     </Layout>
   );
