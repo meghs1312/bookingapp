@@ -2,24 +2,41 @@ const Slot = require("../models/slot");
 
 const createSlot = async (req, res) => {
   try {
+    const { service, date, startTime, endTime } = req.body;
+    const provider = req.user.id;
+
+    if (startTime >= endTime) {
+      return res.status(400).json({
+        message: "End time must be after start time"
+      });
+    }
+
+    const conflict = await Slot.findOne({
+      provider,
+      date,
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime }
+    });
+
+    if (conflict) {
+      return res.status(400).json({
+        message: "Slot already exists for this time"
+      });
+    }
+
     const slot = await Slot.create({
-      ...req.body,
-      provider: req.user.id
+      provider,
+      service,
+      date,
+      startTime,
+      endTime
     });
 
     res.json(slot);
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-};
-
-const getAvailableSlots = async (req, res) => {
-  const slots = await Slot.find({
-    service: req.params.serviceId,
-    isBooked: false
-  }).populate('service');
-
-  res.json(slots);
 };
 
 // GET PROVIDER SLOTS
